@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Comments collection rules
+    match /comments/{commentId} {
+      // Anyone can read comments
+      allow read: if true;
+
+      // Only authenticated users can create comments
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'userName', 'userPhoto', 'text', 'timestamp', 'likes'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500;
+
+      // Users can only delete their own comments
+      allow delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+
+      // Users can update comments to add/remove likes
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && (
+          // Adding own userId to likes array
+          (request.resource.data.likes.toSet().difference(resource.data.likes.toSet()) == [request.auth.uid].toSet())
+          ||
+          // Removing own userId from likes array
+          (resource.data.likes.toSet().difference(request.resource.data.likes.toSet()) == [request.auth.uid].toSet())
+        );
+    }
+  }
+}
