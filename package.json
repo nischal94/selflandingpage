@@ -13,7 +13,7 @@
     "react-dom": "^19.2.5",
     "next": "^15.5.9",
     "firebase": "^10.7.1",
-    "openai": "^4.20.1"
+    "openai": "^6.34.0"
   },
   "devDependencies": {
     "typescript": "^5",
